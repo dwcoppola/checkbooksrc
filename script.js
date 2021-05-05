@@ -93,7 +93,7 @@ function deleteTransaction(transactionID) {
         for (let i=0; i<numberOfAccounts; i++) {
             let accountTransactions = localStorage[`account-${i}-transactions`].split(';').slice(0, this.length - 1);
             for (transaction of accountTransactions) {
-                if (transaction[0] === transactionID.toString()) {
+                if (transaction.split(',')[0].toString() === transactionID.toString()) {
                     localStorage[`account-${i}-transactions`] = localStorage[`account-${i}-transactions`].replace(transaction + ';', '');
                     location.reload();
                 } else {
@@ -300,32 +300,22 @@ function populateAccountMenu() {
 function populateTransactionTable() {
     const transactions = getAllAccountTransactions();
     if (transactions !== undefined) {
-        const table = document.getElementById('transaction-table');
-        if (table) {
-            removeAllChildren(table);
-            table.innerHTML = 
-            `<thead>
-                <tr>
-                    <th class="hundo">Date</th>
-                    <th class="hundo">Amount</th>
-                    <th>Memo</th>
-                    <th class="narrower"><span class="glyphicon glyphicon-pencil"></span></th>
-                    <th class="narrower">Delete</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>`
-            const tbody = document.querySelector('tbody');
+        const container = document.getElementById('transaction-container');
+        if (container) {
+            removeAllChildren(container);
             for (transaction of transactions) {
-                // todo: truncate memo text
-                tbody.innerHTML +=
-                `<tr class="${transaction.split(',')[4] === 'true' ? "red" : "black"}" id="row-${transaction.split(',')[0]}">
-                    <td>${transaction.split(',')[5]}</td>
-                    <td>${transaction.split(',')[2]}</td>
-                    <td>${transaction.split(',')[3]}</td>
-                    <td><span class="glyphicon glyphicon-pencil small blue" onclick="updateTransaction(${transaction.split(',')[0]})"></span></td>
-                    <td><span class="glyphicon glyphicon-remove red" onclick="deleteTransaction(${transaction.split(',')[0]})"></span></td>
-                </tr>`
+                container.innerHTML += 
+                `<div class="${transaction.split(',')[4] === 'true' ? "red" : "black"} well" id="well-${transaction.split(',')[0]}">
+                    <div style="float: right;">
+                        <span class="glyphicon glyphicon-pencil" onclick="updateTransaction(${transaction.split(',')[0]})"></span>
+                        <span class="glyphicon glyphicon-remove red" onclick="deleteTransaction(${transaction.split(',')[0]})"></span>
+                    </div>
+                    <p>Date: ${transaction.split(',')[5]}</p>
+                    <p style="float: right;">Memo: ${transaction.split(',')[3].trim() === '' ? 'No Memo' : transaction.split(',')[3].trim()}</p>
+                    <p>Amount: $${transaction.split(',')[2]}</p>
+                    <p></p>
+                    <p></p>
+                </div>`
             }
         }
     }
