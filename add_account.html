@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="style.css">
+        <title>Document</title>
+        <script src="script.js" defer></script>
+    </head>
+    <body>
+        <div id="add-account-main">
+            <h2>Add an Account</h2>
+
+            <p>Click <a href="index.html">here</a> to go back</p>
+            
+            <div class="form=group">
+                <label>Account Name</label>
+                <input class="form-control" id="account-name"/>
+            </div>
+
+            <div class="form=group">
+                <label>Start Balance</label>
+                <input class="form-control" id="start-balance"/>
+            </div>
+            
+            <button onclick="getAccountData()" class="btn btn-default">Save</button>
+        </div>
+    </body>
+</html>

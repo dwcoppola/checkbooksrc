@@ -1,0 +1,9 @@
+#index-main, #add-account-main
+{
+    padding: 1.5em;
+    max-width: 600px;
+}
+.btn-default
+{
+    margin-top: 1em;
+}
