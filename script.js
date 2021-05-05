@@ -20,8 +20,9 @@ function clearStorage() {
     localStorage.clear();
     location.reload();
 }
-// Transactions //
 
+
+// Transactions //
 
 function getTransactionID() {
     return localStorage['transaction-id'];
@@ -102,6 +103,18 @@ function deleteTransaction(transactionID) {
     }
 }
 
+function updateTransaction(transactionID) {
+    return getTransactionByID(transactionID);
+}
+
+function getUpdateTransactionInfo() {
+
+}
+
+function buildTransactionUpdateForm() {
+
+}
+
 
 // Accounts //
 
@@ -120,7 +133,7 @@ function addAccount(accountName, startBalance) {
     incrementAcountID();
     alert(`You have successfully added ${accountName}`);
     location.reload();
-}
+}   
 
 function getAccountData() {
     const accountName = document.getElementById('account-name');
@@ -148,6 +161,57 @@ function getAllAccountNames() {
     };
     return output;    
 }
+
+function getStartBalanceByID(accountID) {
+    for (account of getAllAccounts()) {
+        if (account[0] === accountID.toString()) {
+            return account[2];
+        }
+    }
+}
+
+function getAccountTransactionValues() {
+    const account = document.getElementById('account').value;
+    const start = getStartBalanceByID(account);
+    output = [];
+    if (account && start) {
+        const transactions = localStorage[`account-${account}-transactions`].split(';').slice(0, this.length - 1);
+        for (transaction of transactions) {
+            let newArray = [transaction.split(',')[2], transaction.split(',')[4]]
+            output.push(newArray);
+        }
+    }
+    return output;
+}
+
+function getBankBalance() {
+    const values = getAccountTransactionValues();
+    const account = document.getElementById('account').value;
+    const start = getStartBalanceByID(account);
+    let bankBalance = Number(start);
+    for (value of values) {
+        if (value[1] === 'false') {
+            bankBalance += Number(value[0]);
+        }
+    }
+    return bankBalance.toFixed(2);    
+}
+
+function getAvailableBalance() {
+    const values = getAccountTransactionValues();
+    const account = document.getElementById('account').value;
+    const start = getStartBalanceByID(account);
+    let availableBalance = Number(start);
+    for (value of values) {
+        if (value[1] === 'false') {
+            availableBalance += Number(value[0]);
+        } else if (value[1] === 'true' && Number(value[0] < 0)) {
+            availableBalance += Number(value[0]);
+        }
+    }
+    return availableBalance.toFixed(2);
+}
+
 
 // DOM //
 
@@ -232,7 +296,6 @@ function populateAccountMenu() {
         }
     }
 }
-populateAccountMenu();
 
 function populateTransactionTable() {
     const transactions = getAllAccountTransactions();
@@ -243,10 +306,11 @@ function populateTransactionTable() {
             table.innerHTML = 
             `<thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Edit</th>
-                    <th>Delete</th>
+                    <th class="hundo">Date</th>
+                    <th class="hundo">Amount</th>
+                    <th>Memo</th>
+                    <th class="narrower"><span class="glyphicon glyphicon-pencil"></span></th>
+                    <th class="narrower">Delete</th>
                 </tr>
             </thead>
             <tbody>
@@ -258,12 +322,14 @@ function populateTransactionTable() {
                 `<tr class="${transaction.split(',')[4] === 'true' ? "red" : "black"}" id="row-${transaction.split(',')[0]}">
                     <td>${transaction.split(',')[5]}</td>
                     <td>${transaction.split(',')[2]}</td>
-                    <td><span class="glyphicon glyphicon-pencil" onclick="gotoEditTransaction(${transaction.split(',')[0]})"></span></td>
-                    <td><span class="glyphicon glyphicon-remove" onclick="deleteTransaction(${transaction.split(',')[0]})"></span></td>
+                    <td>${transaction.split(',')[3]}</td>
+                    <td><span class="glyphicon glyphicon-pencil small blue" onclick="updateTransaction(${transaction.split(',')[0]})"></span></td>
+                    <td><span class="glyphicon glyphicon-remove red" onclick="deleteTransaction(${transaction.split(',')[0]})"></span></td>
                 </tr>`
             }
         }
     }
+    populateBalances();
 }
 
 function removeAllChildren(parent) {
@@ -272,6 +338,16 @@ function removeAllChildren(parent) {
     }
 }
 
+function populateBalances() {
+    const balanceSection = document.getElementById('balances');
+    const account = document.getElementById('account');
+    if (account.value) {
+        balanceSection.innerHTML = `
+        <div>
+            <p>Available: $${getAvailableBalance(account.value)} | Bank: $${getBankBalance(account.value)}</p>
+        </div>`;
+    }
+}
 
 // Errors // 
 
@@ -300,5 +376,7 @@ function checkUserState() {
     }
 }
 
+populateAccountMenu();
 checkUserState();
 populateTransactionTable();
+populateBalances();

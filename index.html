@@ -12,21 +12,26 @@
     <body>
         <div id="index-main">
             <h2>Accounts</h2>
+            <div id="add-account" class="form-group">
+                <button onclick="showAddAccountSection()" class="btn btn-default">Add Account</button>
+            </div>
+            <div id="balances">
+            </div>            
             <div class="form-group">
                 <label>Account</label>
                 <select onchange="populateTransactionTable()" class="form-control" id="account" autofocus>
                     <option selected disabled value="">Choose:</option>
                 </select>
             </div>
-            <div id="add-account" class="form-group">
-                <button onclick="showAddAccountSection()" class="btn btn-default">Add Account</button>
-            </div>
             <h2>Transactions</h2>
             <div id="add-transaction" class="form-group">
                 <button onclick="showAddTransactionSection()" class="btn btn-default">Add Transaction</button>
             </div>
-            <p><a class="red">Red text</a> = not cleared</p>
-            <table class="table table-striped table-bordered" id="transaction-table">
+            <div id="edit-transaction" class="form-group">
+                
+            </div>
+            <p><a class="red">Red text</a> = not clear</p>
+            <table class="table table-striped table-bordered table-condensed table" id="transaction-table">
             </table>
         </div>
         <footer>Dev: <a onclick="clearStorage()">Reset Storage</a></footer>

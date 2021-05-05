@@ -5,9 +5,25 @@
 }
 .red
 {
-    color: red;
+    color: rgb(192, 24, 24);
 }
 .black
 {
     color: black;
+}
+.blue
+{
+    color: blue;
+}
+a:hover 
+{
+    cursor: pointer;
+}
+.narrower
+{
+    width: 50px;
+}
+.hundo
+{
+    min-width: 100px;
 }
