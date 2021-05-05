@@ -16,7 +16,12 @@ if (localStorage['user-state'] === undefined) {
     localStorage['user-state'] = '';
 }
 
+function clearStorage() {
+    localStorage.clear();
+    location.reload();
+}
 // Transactions //
+
 
 function getTransactionID() {
     return localStorage['transaction-id'];
@@ -71,13 +76,30 @@ function getTransactionByID(transactionID) {
         let accountTransactions = localStorage[`account-${i}-transactions`].split(';').slice(0, this.length - 1);
         for (transaction of accountTransactions) {
             if (transaction[0] === transactionID.toString()) {
-                return transaction.split(',');
+                return transaction;
             } else {
                 continue;
             }
         }
     }
     return "Not Found";
+}
+
+function deleteTransaction(transactionID) {
+    let answer = confirm("Are you sure?");
+    if (answer) {
+        const numberOfAccounts = getAllAccountNames().length;
+        for (let i=0; i<numberOfAccounts; i++) {
+            let accountTransactions = localStorage[`account-${i}-transactions`].split(';').slice(0, this.length - 1);
+            for (transaction of accountTransactions) {
+                if (transaction[0] === transactionID.toString()) {
+                    localStorage[`account-${i}-transactions`] = localStorage[`account-${i}-transactions`].replace(transaction + ';', '');
+                    location.reload();
+                } else {
+                }
+            }
+        }
+    }
 }
 
 
@@ -223,8 +245,8 @@ function populateTransactionTable() {
                 <tr>
                     <th>Date</th>
                     <th>Amount</th>
-                    <th>Memo</th>
                     <th>Edit</th>
+                    <th>Delete</th>
                 </tr>
             </thead>
             <tbody>
@@ -233,11 +255,11 @@ function populateTransactionTable() {
             for (transaction of transactions) {
                 // todo: truncate memo text
                 tbody.innerHTML +=
-                `<tr id="row-${transaction.split(',')[0]}">
+                `<tr class="${transaction.split(',')[4] === 'true' ? "red" : "black"}" id="row-${transaction.split(',')[0]}">
                     <td>${transaction.split(',')[5]}</td>
                     <td>${transaction.split(',')[2]}</td>
-                    <td>${transaction.split(',')[3]}</td>
                     <td><span class="glyphicon glyphicon-pencil" onclick="gotoEditTransaction(${transaction.split(',')[0]})"></span></td>
+                    <td><span class="glyphicon glyphicon-remove" onclick="deleteTransaction(${transaction.split(',')[0]})"></span></td>
                 </tr>`
             }
         }

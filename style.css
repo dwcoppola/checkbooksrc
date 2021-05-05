@@ -1,4 +1,4 @@
-#index-main, #add-account-main
+#index-main, #add-account-main, footer
 {
     padding: 1.5em;
     max-width: 600px;
@@ -6,4 +6,8 @@
 .red
 {
     color: red;
+}
+.black
+{
+    color: black;
 }
