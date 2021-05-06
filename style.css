@@ -27,3 +27,7 @@ a:hover
 {
     min-width: 100px;
 }
+.no-margin
+{
+    margin-bottom: 0px;
+}

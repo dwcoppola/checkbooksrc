@@ -1,4 +1,4 @@
-// Storage //
+// DATA/STATE
 
 if (localStorage['account-id'] === undefined) {
     localStorage['account-id'] = 0;
@@ -21,16 +21,37 @@ function clearStorage() {
     location.reload();
 }
 
-
-// Transactions //
+function incrementTransactionID() {
+    localStorage['transaction-id'] = Number(localStorage['transaction-id']) + 1;
+}
 
 function getTransactionID() {
     return localStorage['transaction-id'];
 }
 
-function incrementTransactionID() {
-    localStorage['transaction-id'] = Number(localStorage['transaction-id']) + 1;
+function getAccountID() {
+    return localStorage['account-id'];
 }
+
+function incrementAcountID() {
+    localStorage['account-id'] = Number(localStorage['account-id']) + 1;
+}
+
+function checkUserState() {
+    const accountID = localStorage['user-state'];
+    const menu = document.getElementById('account');
+    if (menu) {
+        const options = menu.options;
+        for (let option of options) {
+            if (option.value === accountID) {
+                option.selected = true;
+            }
+        }
+    }
+}
+
+
+// CREATE 
 
 function addTransaction(account, action, amount, memo, notClear) {
     const time = new Date();
@@ -56,76 +77,6 @@ function getTransactionData() {
     }
 }
 
-function getAllAccountTransactions() {
-    let output = [];
-    const accountID = document.getElementById('account'); 
-    if (accountID) {
-        const accounts = localStorage[`account-${accountID.value}-transactions`];
-        if (accounts !== undefined) {
-            for (account of accounts.split(';').slice(0, this.length - 1)) {
-                output.push(account);
-            }
-            localStorage['user-state'] = accountID.value;
-            return output;
-        }
-    }
-}
-
-function getTransactionByID(transactionID) {
-    const numberOfAccounts = getAllAccountNames().length;
-    for (let i=0; i<numberOfAccounts; i++) {
-        let accountTransactions = localStorage[`account-${i}-transactions`].split(';').slice(0, this.length - 1);
-        for (transaction of accountTransactions) {
-            if (transaction[0] === transactionID.toString()) {
-                return transaction;
-            } else {
-                continue;
-            }
-        }
-    }
-    return "Not Found";
-}
-
-function deleteTransaction(transactionID) {
-    let answer = confirm("Are you sure?");
-    if (answer) {
-        const numberOfAccounts = getAllAccountNames().length;
-        for (let i=0; i<numberOfAccounts; i++) {
-            let accountTransactions = localStorage[`account-${i}-transactions`].split(';').slice(0, this.length - 1);
-            for (transaction of accountTransactions) {
-                if (transaction.split(',')[0].toString() === transactionID.toString()) {
-                    localStorage[`account-${i}-transactions`] = localStorage[`account-${i}-transactions`].replace(transaction + ';', '');
-                    location.reload();
-                } else {
-                }
-            }
-        }
-    }
-}
-
-function updateTransaction(transactionID) {
-    return getTransactionByID(transactionID);
-}
-
-function getUpdateTransactionInfo() {
-
-}
-
-function buildTransactionUpdateForm() {
-
-}
-
-
-// Accounts //
-
-function getAccountID() {
-    return localStorage['account-id'];
-}
-
-function incrementAcountID() {
-    localStorage['account-id'] = Number(localStorage['account-id']) + 1;
-}
-
 function addAccount(accountName, startBalance) {
     localStorage['accounts'] += `${getAccountID()},${accountName},${startBalance};`;
     localStorage[`account-${getAccountID()}-transactions`] = '';
@@ -144,6 +95,40 @@ function getAccountData() {
     accountName.focus();
 } 
 
+
+// READ
+
+function getAllAccountTransactions() {
+    let output = [];
+    const accountID = document.getElementById('account'); 
+    if (accountID) {
+        const accounts = localStorage[`account-${accountID.value}-transactions`];
+        if (accounts !== undefined) {
+            for (let account of accounts.split(';').slice(0, this.length - 1)) {
+                output.push(account);
+            }
+            localStorage['user-state'] = accountID.value;
+            return output;
+        }
+    }
+}
+
+function getTransactionByID(transactionID) {
+    const numberOfAccounts = getAllAccounts().length;
+    for (let i=0; i<numberOfAccounts; i++) {
+        let accountTransactions = localStorage[`account-${i}-transactions`].split(';').slice(0, this.length - 1);
+        for (let transaction of accountTransactions) {
+            if (transaction.split(',')[0] === transactionID.toString()) {
+                let output = [i, transaction]
+                return output;
+            } else {
+                continue;
+            }
+        }
+    }
+    return "Not Found";
+}
+
 function getAllAccounts() {
     let output = [];
     const accounts = localStorage['accounts'].split(';').slice(0, this.length - 1);
@@ -153,17 +138,18 @@ function getAllAccounts() {
     return output;
 }
 
-function getAllAccountNames() {
-    let output = [];
-    const accounts = localStorage['accounts'].split(';').slice(0, this.length - 1);
-    for (account of accounts) {
-        output.push(account.split(',')[1]);
-    };
-    return output;    
+function getAccountByID(accountID) {
+    const accounts = getAllAccounts();
+    for (let account of accounts) {
+        if (account[0] === accountID.toString()) {
+            return account;
+        }
+    }
+    return "Not found";
 }
 
 function getStartBalanceByID(accountID) {
-    for (account of getAllAccounts()) {
+    for (let account of getAllAccounts()) {
         if (account[0] === accountID.toString()) {
             return account[2];
         }
@@ -189,7 +175,7 @@ function getBankBalance() {
     const account = document.getElementById('account').value;
     const start = getStartBalanceByID(account);
     let bankBalance = Number(start);
-    for (value of values) {
+    for (let value of values) {
         if (value[1] === 'false') {
             bankBalance += Number(value[0]);
         }
@@ -202,7 +188,7 @@ function getAvailableBalance() {
     const account = document.getElementById('account').value;
     const start = getStartBalanceByID(account);
     let availableBalance = Number(start);
-    for (value of values) {
+    for (let value of values) {
         if (value[1] === 'false') {
             availableBalance += Number(value[0]);
         } else if (value[1] === 'true' && Number(value[0] < 0)) {
@@ -212,6 +198,87 @@ function getAvailableBalance() {
     return availableBalance.toFixed(2);
 }
 
+// UPDATE
+
+function updateAccount(accountID, name, startBalance) {
+    const account = getAccountByID(accountID).join(',') + ';';
+    let newAccount = getAccountByID(accountID);
+    if (name) {
+        newAccount[1] = name;
+    }
+    if (startBalance || startBalance === "0" || startBalance === 0) {
+        newAccount[2] = startBalance;
+    }
+    newAccount = newAccount.join(',') + ';';
+    localStorage.setItem(
+        'accounts', 
+        localStorage['accounts'].replace(account, newAccount)
+    );
+    location.reload();
+}
+
+function updateTransaction(transactionID, action, amount, memo, notClear) {
+    const transaction = getTransactionByID(transactionID)[1] + ';';
+    const account = getTransactionByID(transactionID)[0];
+    let newTransaction = getTransactionByID(transactionID)[1].split(',');
+    if (action) {
+        newTransaction[1] = action;
+    }
+    if (amount) {
+        newTransaction[2] = amount;
+    }
+    if (action === "Withdrawal" && Number(amount) > 0) {
+        newTransaction[2] = amount * -1;
+    }
+    if (memo || memo === "") {
+        newTransaction[3] = memo;
+    }
+    if (notClear) {
+        newTransaction[4] = notClear;
+    }
+
+    newTransaction = newTransaction.join(',') + ';';
+    localStorage.setItem(
+        `account-${account}-transactions`, 
+        localStorage.getItem(`account-${account}-transactions`).replace(transaction, newTransaction)
+    );
+    location.reload();
+}
+
+function toggleClear(transactionID) {
+    const notClear = getTransactionByID(transactionID)[1].split(',')[4];
+    if (notClear === "false") {
+        updateTransaction(transactionID, "", "", "", "true");
+    } else {
+        updateTransaction(transactionID, "", "", "", "false");
+    }
+}
+
+// DELETE
+
+function deleteTransaction(transactionID) {
+    let answer = confirm("Are you sure?");
+    if (answer) {
+        const numberOfAccounts = getAllAccounts().length;
+        for (let i=0; i<numberOfAccounts; i++) {
+            let accountTransactions = localStorage[`account-${i}-transactions`].split(';').slice(0, this.length - 1);
+            for (let transaction of accountTransactions) {
+                if (transaction.split(',')[0].toString() === transactionID.toString()) {
+                    localStorage[`account-${i}-transactions`] = localStorage[`account-${i}-transactions`].replace(transaction + ';', '');
+                    location.reload();
+                } else {
+                }
+            }
+        }
+    }
+}
+
+function deleteAccount(accountID) {
+    const account = getAccountByID(accountID).join(',') + ';';
+    localStorage['accounts'] = localStorage['accounts'].replace(account, '')
+    localStorage.removeItem(`account-${accountID}-transactions`);
+    location.reload();
+} 
 
 // DOM //
 
@@ -291,7 +358,7 @@ function populateAccountMenu() {
     const accounts = getAllAccounts();
     const menu = document.getElementById('account');
     if (menu !== null) {
-        for (account of accounts) {
+        for (let account of accounts) {
             menu.innerHTML += `<option value="${account[0]}">${account[1]}</option>`;
         }
     }
@@ -303,18 +370,17 @@ function populateTransactionTable() {
         const container = document.getElementById('transaction-container');
         if (container) {
             removeAllChildren(container);
-            for (transaction of transactions) {
+            for (let transaction of transactions) {
                 container.innerHTML += 
                 `<div class="${transaction.split(',')[4] === 'true' ? "red" : "black"} well" id="well-${transaction.split(',')[0]}">
                     <div style="float: right;">
-                        <span class="glyphicon glyphicon-pencil" onclick="updateTransaction(${transaction.split(',')[0]})"></span>
-                        <span class="glyphicon glyphicon-remove red" onclick="deleteTransaction(${transaction.split(',')[0]})"></span>
+                        Edit: <span class="glyphicon glyphicon-pencil"></span>
+                        Delete: <span class="glyphicon glyphicon-remove red" onclick="deleteTransaction(${transaction.split(',')[0]})"></span>
                     </div>
-                    <p>Date: ${transaction.split(',')[5]}</p>
-                    <p style="float: right;">Memo: ${transaction.split(',')[3].trim() === '' ? 'No Memo' : transaction.split(',')[3].trim()}</p>
-                    <p>Amount: $${transaction.split(',')[2]}</p>
-                    <p></p>
-                    <p></p>
+                    <p class="no-margin">${transaction.split(',')[5]}</p>
+                    <p class="no-margin" style="float: right;">${transaction.split(',')[3].trim() === '' ? 'No Memo' : transaction.split(',')[3].trim()}</p>
+                    <p class="no-margin">$${transaction.split(',')[2]}</p>
+                    <p class="no-margin">Not clear? <input ${transaction.split(',')[4] === 'true' ? 'checked' : ''} type="checkbox" onchange="toggleClear(${transaction.split(',')[0]})"/></p>
                 </div>`
             }
         }
@@ -353,18 +419,7 @@ function alertUser() {
 
 // State
 
-function checkUserState() {
-    const accountID = localStorage['user-state'];
-    const menu = document.getElementById('account');
-    if (menu) {
-        const options = menu.options;
-        for (option of options) {
-            if (option.value === accountID) {
-                option.selected = true;
-            }
-        }
-    }
-}
+
 
 populateAccountMenu();
 checkUserState();
