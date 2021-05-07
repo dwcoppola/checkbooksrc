@@ -64,35 +64,67 @@ function addTransaction(account, action, amount, memo, notClear) {
 }
 
 function getTransactionData() {
+
     const account = document.getElementById('account');
     const action = document.getElementById('action');
     const amount = document.getElementById('amount');
     const memo = document.getElementById('memo');
     const notClear = document.getElementById('not-clear');
-    if (account.value) {
-        addTransaction(account.value, action.value, amount.value, memo.value, notClear.checked);
-        location.reload();
+
+    if (getAccountByID(account.value) === "Not found") {
+        setTimeout(() => {
+            alert(`You must choose an account`);
+        }, 100);
+    } else if (action.value !== "Deposit" && action.value !== "Withdrawal") {
+        setTimeout(() => {
+            alert(`You can only Deposit or Withdraw`);
+        }, 100);
+    } else if (Boolean(Number(amount.value)) === false && amount.value.toString() !== "0" || amount.value.trim() === '' || Number(amount.value) < 0) {
+        setTimeout(() => {
+            alert(`Please enter a positve number`);
+        }, 100);
+    } else if (notClear.checked !== true && notClear.checked !== false) {
+        setTimeout(() => {
+            alert(`Are you a hacker?`);
+        }, 100);
     } else {
-        setTimeout(() => {alert("You need to pick an account")}, 150);
+        addTransaction(account.value, action.value, amount.value, memo.value, notClear.checked);
+        location.reload();        
     }
+
 }
 
 function addAccount(accountName, startBalance) {
+
     localStorage['accounts'] += `${getAccountID()},${accountName},${startBalance};`;
     localStorage[`account-${getAccountID()}-transactions`] = '';
     localStorage['user-state'] = getAccountID();
     incrementAcountID();
     alert(`You have successfully added ${accountName}`);
     location.reload();
+
 }   
 
 function getAccountData() {
+    
     const accountName = document.getElementById('account-name');
     const startBalance = document.getElementById('start-balance');
-    addAccount(accountName.value.trim(), startBalance.value);
-    accountName.value = '';
-    startBalance.value = '';
-    accountName.focus();
+ 
+    if (accountName.value.trim() === '') {
+        setTimeout(() => {
+            alert(`Your Account Name can't be blank!`);
+        }, 100);
+    } else if (startBalance.value.trim() === '') {
+        setTimeout(() => {
+            alert(`Your Start Balance can't be blank!`);
+        }, 100);
+    } else { 
+        addAccount(accountName.value.trim(), startBalance.value);
+        accountName.value = '';
+        startBalance.value = '';
+        accountName.focus();
+    }
+
 } 
 
 
@@ -370,7 +402,7 @@ function populateTransactionTable() {
         const container = document.getElementById('transaction-container');
         if (container) {
             removeAllChildren(container);
-            for (let transaction of transactions) {
+            for (let transaction of transactions.reverse()) {
                 container.innerHTML += 
                 `<div class="${transaction.split(',')[4] === 'true' ? "red" : "black"} well" id="well-${transaction.split(',')[0]}">
                     <div style="float: right;">
