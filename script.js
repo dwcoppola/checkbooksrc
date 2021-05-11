@@ -1,4 +1,4 @@
-// DATA/STATE
+// data and state
 
 if (localStorage['account-id'] === undefined) {
     localStorage['account-id'] = 0;
@@ -51,7 +51,7 @@ function checkUserState() {
 }
 
 
-// CREATE 
+// create
 
 function addTransaction(account, action, amount, memo, notClear) {
     const time = new Date();
@@ -137,7 +137,7 @@ function getAccountData() {
 } 
 
 
-// READ
+// read
 
 function getAllAccountTransactions() {
     let output = [];
@@ -452,12 +452,10 @@ function populateTransactionTable() {
             for (let transaction of transactions.reverse()) {
                 container.innerHTML += 
                 `<div class="${transaction.split(',')[4] === 'true' ? "red" : "black"} well" id="well-${transaction.split(',')[0]}">
-                    <div style="float: right;">
-                        Edit: <span onclick="showTransactionEdit(${transaction.split(',')[0]})" class="glyphicon glyphicon-pencil"></span>
-                        Delete: <span class="glyphicon glyphicon-remove red" onclick="deleteTransaction(${transaction.split(',')[0]})"></span>
-                    </div>
+                    <span style="float: right;" onclick="showTransactionEdit(${transaction.split(',')[0]})" class="glyphicon glyphicon-pencil"></span>
+                    <span style="float: right;" class="glyphicon glyphicon-remove red" onclick="deleteTransaction(${transaction.split(',')[0]})"></span>
                     <p class="no-margin">${transaction.split(',')[5]}</p>
-                    <p class="no-margin" style="float: right;">${transaction.split(',')[3].trim() === '' ? 'No Memo' : transaction.split(',')[3].trim()}</p>
+                    <p style="float: right;" class="no-margin">${transaction.split(',')[3].trim() === '' ? 'No Memo' : transaction.split(',')[3].trim()}</p>
                     <p class="no-margin">$${transaction.split(',')[2]}</p>
                     <p class="no-margin">Not clear? <input ${transaction.split(',')[4] === 'true' ? 'checked' : ''} type="checkbox" onchange="toggleClear(${transaction.split(',')[0]})"/></p>
                 </div>`
@@ -485,6 +483,9 @@ function populateBalances() {
 }
 
 function showTransactionEdit(transactionID) {
+    const domTransactions = document.getElementById('transaction-container');
+    removeAllChildren(domTransactions);
+
     const editSection = document.getElementById('edit-transaction');
     const transaction = getTransactionByID(transactionID)[1].split(',');
 
@@ -541,6 +542,7 @@ function showTransactionEdit(transactionID) {
 function hideTransactionEdit() {
     const editTransaction = document.getElementById('edit-transaction');
     removeAllChildren(editTransaction);
+    populateTransactionTable();
 }
 
 
