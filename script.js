@@ -452,11 +452,11 @@ function populateTransactionTable() {
             for (let transaction of transactions.reverse()) {
                 container.innerHTML += 
                 `<div class="${transaction.split(',')[4] === 'true' ? "red" : "black"} well" id="well-${transaction.split(',')[0]}">
-                    <span style="float: right;" onclick="showTransactionEdit(${transaction.split(',')[0]})" class="glyphicon glyphicon-pencil"></span>
-                    <span style="float: right;" class="glyphicon glyphicon-remove red" onclick="deleteTransaction(${transaction.split(',')[0]})"></span>
+                    <p class="glyphicon glyphicon-pencil" style="float: right" class="no-margin"onclick="showTransactionEdit(${transaction.split(',')[0]})"></p>
                     <p class="no-margin">${transaction.split(',')[5]}</p>
-                    <p style="float: right;" class="no-margin">${transaction.split(',')[3].trim() === '' ? 'No Memo' : transaction.split(',')[3].trim()}</p>
+                    <p class="no-margin">${transaction.split(',')[3].trim() === '' ? 'No Memo' : transaction.split(',')[3].trim()}</p>
                     <p class="no-margin">$${transaction.split(',')[2]}</p>
+                    <p class="glyphicon glyphicon-remove" style="float: right" class="no-margin"onclick="deleteTransaction(${transaction.split(',')[0]})"></p>
                     <p class="no-margin">Not clear? <input ${transaction.split(',')[4] === 'true' ? 'checked' : ''} type="checkbox" onchange="toggleClear(${transaction.split(',')[0]})"/></p>
                 </div>`
             }
