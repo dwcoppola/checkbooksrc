@@ -1,5 +1,3 @@
-// data and state
-
 if (localStorage['account-id'] === undefined) {
     localStorage['account-id'] = 0;
 }
@@ -50,8 +48,7 @@ function checkUserState() {
     }
 }
 
-
-// create
+// ------------------------
 
 function addTransaction(account, action, amount, memo, notClear) {
     const time = new Date();
@@ -136,8 +133,7 @@ function getAccountData() {
 
 } 
 
-
-// read
+// ------------------------
 
 function getAllAccountTransactions() {
     let output = [];
@@ -239,7 +235,7 @@ function getAvailableBalance() {
     return availableBalance.toFixed(2);
 }
 
-// UPDATE
+// ------------------------
 
 function updateAccount(accountID, name, startBalance) {
     const account = getAccountByID(accountID).join(',') + ';';
@@ -335,10 +331,10 @@ function toggleClear(transactionID) {
     }
 }
 
-// DELETE
+// ------------------------
 
 function deleteTransaction(transactionID) {
-    let answer = confirm("Are you sure?");
+    let answer = confirm(`Are you sure? This action cannot be undone`);
     if (answer) {
         const numberOfAccounts = getAllAccounts().length;
         for (let i=0; i<numberOfAccounts; i++) {
@@ -361,7 +357,7 @@ function deleteAccount(accountID) {
     location.reload();
 } 
 
-// DOM //
+// ------------------------
 
 function showAddAccountSection() {
     const addAcctSect = document.getElementById('add-account');
@@ -370,12 +366,12 @@ function showAddAccountSection() {
        
         <div class="form-group">
             <label>Account Name</label>
-            <input class="form-control" id="account-name" autocomplete="off"/>
+            <input onkeypress="getAccountDataWithEnter(event)" class="form-control" id="account-name" autocomplete="off"/>
         </div>
 
         <div class="form-group">
             <label>Start Balance</label>
-            <input class="form-control" id="start-balance" autocomplete="off"/>
+            <input onkeypress="getAccountDataWithEnter(event)" class="form-control" id="start-balance" autocomplete="off"/>
         </div>
 
         <div class="form-group">       
@@ -408,12 +404,12 @@ function showAddTransactionSection() {
         
     <div class="form-group">
         <label>Amount</label>
-        <input class="form-control" id="amount" autocomplete="off"/>
+        <input onkeypress="getTransactionDataWithEnter(event)" class="form-control" id="amount" autocomplete="off"/>
     </div>
     
     <div class="form-group">
         <label>Memo</label>
-        <input class="form-control" id="memo" autocomplete="off"/>
+        <input onkeypress="getTransactionDataWithEnter(event)" class="form-control" id="memo" autocomplete="off"/>
     </div>
     
     <div class="form-group">
@@ -545,22 +541,26 @@ function hideTransactionEdit() {
     populateTransactionTable();
 }
 
-
-// Errors // 
-
-function alertUser() {
-    alert("Something went wrong. Please check your inputs and try again.")
+function getAccountDataWithEnter(event) {
+    const keyPress = event.keyCode || event.which;
+    if (keyPress === 13) {
+        getAccountData();
+    }
 }
 
+function getTransactionDataWithEnter(event) {
+    const keyPress = event.keyCode || event.which;
+    if (keyPress === 13) {
+        getTransactionData();
+    }
+}
 
-// Random
-// This is a way to do initial caps. How ridiculous!
-// action.value.slice(0,1).toUpperCase() + action.value.slice(1, action.value.length)
-
-
-// State
-
-
+function getEditTransactionDataWithEnter(event, transactionID) {
+    const keyPress = event.keyCode || event.which;
+    if (keyPress === 13) {
+        getTransactionData(transactionID);
+    }    
+}
 
 populateAccountMenu();
 checkUserState();
