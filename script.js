@@ -71,15 +71,24 @@ function getTransactionData() {
     const memo = document.getElementById('memo');
     const notClear = document.getElementById('not-clear');
 
+    account.style.backgroundColor = '#fff';
+    action.style.backgroundColor = '#fff';
+    amount.style.backgroundColor = '#fff';
+    memo.style.backgroundColor = '#fff';
+    notClear.style.backgroundColor = '#fff';
+
     if (getAccountByID(account.value) === "Not found") {
+        account.style.backgroundColor = '#ff0'
         setTimeout(() => {
             alert(`You must choose an account`);
         }, 100);
     } else if (action.value !== "Deposit" && action.value !== "Withdrawal") {
+        action.style.backgroundColor = '#FF0'
         setTimeout(() => {
             alert(`You can only Deposit or Withdraw`);
         }, 100);
     } else if (Boolean(Number(amount.value)) === false && amount.value.toString() !== "0" || amount.value.trim() === '' || Number(amount.value) < 0) {
+        amount.style.backgroundColor = '#FF0'
         setTimeout(() => {
             alert(`Please enter a positve number`);
         }, 100);
@@ -88,7 +97,7 @@ function getTransactionData() {
             alert(`Are you a hacker?`);
         }, 100);
     } else {
-        addTransaction(account.value, action.value, amount.value, memo.value, notClear.checked);
+        addTransaction(account.value, action.value, Number(amount.value).toFixed(2), memo.value, notClear.checked);
         location.reload();        
     }
 
@@ -277,6 +286,46 @@ function updateTransaction(transactionID, action, amount, memo, notClear) {
     location.reload();
 }
 
+function getEditTransactionData(transactionID) {
+
+    const account = document.getElementById('account');
+    const action = document.getElementById('action');
+    const amount = document.getElementById('amount');
+    const memo = document.getElementById('memo');
+    const notClear = document.getElementById('not-clear');
+
+    account.style.backgroundColor = '#fff';
+    action.style.backgroundColor = '#fff';
+    amount.style.backgroundColor = '#fff';
+    memo.style.backgroundColor = '#fff';
+    notClear.style.backgroundColor = '#fff';
+
+    if (getAccountByID(account.value) === "Not found") {
+        account.style.backgroundColor = '#ff0'
+        setTimeout(() => {
+            alert(`You must choose an account`);
+        }, 100);
+    } else if (action.value !== "Deposit" && action.value !== "Withdrawal") {
+        action.style.backgroundColor = '#FF0'
+        setTimeout(() => {
+            alert(`You can only Deposit or Withdraw`);
+        }, 100);
+    } else if (Boolean(Number(amount.value)) === false && amount.value.toString() !== "0" || amount.value.trim() === '' || Number(amount.value) < 0) {
+        amount.style.backgroundColor = '#FF0'
+        setTimeout(() => {
+            alert(`Please enter a positve number`);
+        }, 100);
+    } else if (notClear.checked !== true && notClear.checked !== false) {
+        setTimeout(() => {
+            alert(`Are you a hacker?`);
+        }, 100);
+    } else {
+        updateTransaction(transactionID, action.value, Number(amount.value).toFixed(2), memo.value, notClear.checked);
+        location.reload();        
+    }
+
+}
+
 function toggleClear(transactionID) {
     const notClear = getTransactionByID(transactionID)[1].split(',')[4];
     if (notClear === "false") {
@@ -314,10 +363,6 @@ function deleteAccount(accountID) {
 
 // DOM //
 
-function gotoEditTransaction(transactionID) {
-    console.log(transactionID)
-}
-
 function showAddAccountSection() {
     const addAcctSect = document.getElementById('add-account');
     addAcctSect.innerHTML = `
@@ -338,6 +383,7 @@ function showAddAccountSection() {
         </div>`;
     const accountName = document.getElementById('account-name');
     accountName.focus();
+    hideAddTransactionSection();
 }
 
 function hideAddAccountSection() {
@@ -350,7 +396,7 @@ function showAddTransactionSection() {
     const addTransSect = document.getElementById('add-transaction');
     addTransSect.innerHTML = `
     <p>Fill out the form to add a transaction (<a onclick="hideAddTransactionSection()">hide form</a>)</p>
-                
+     
     <div class="form-group">
         <label>Action</label>
         <select class="form-control" id="action">
@@ -362,7 +408,7 @@ function showAddTransactionSection() {
         
     <div class="form-group">
         <label>Amount</label>
-        <input type="number" min="0.01" step="0.01" class="form-control" id="amount" autocomplete="off"/>
+        <input class="form-control" id="amount" autocomplete="off"/>
     </div>
     
     <div class="form-group">
@@ -378,6 +424,7 @@ function showAddTransactionSection() {
     <div class="form-group">
         <button class="btn btn-default" onclick="getTransactionData()">Save</button>
     </div>`
+    hideAddAccountSection();
 }
 
 function hideAddTransactionSection() {
@@ -406,7 +453,7 @@ function populateTransactionTable() {
                 container.innerHTML += 
                 `<div class="${transaction.split(',')[4] === 'true' ? "red" : "black"} well" id="well-${transaction.split(',')[0]}">
                     <div style="float: right;">
-                        Edit: <span class="glyphicon glyphicon-pencil"></span>
+                        Edit: <span onclick="showTransactionEdit(${transaction.split(',')[0]})" class="glyphicon glyphicon-pencil"></span>
                         Delete: <span class="glyphicon glyphicon-remove red" onclick="deleteTransaction(${transaction.split(',')[0]})"></span>
                     </div>
                     <p class="no-margin">${transaction.split(',')[5]}</p>
@@ -436,6 +483,66 @@ function populateBalances() {
         </div>`;
     }
 }
+
+function showTransactionEdit(transactionID) {
+    const editSection = document.getElementById('edit-transaction');
+    const transaction = getTransactionByID(transactionID)[1].split(',');
+
+    editSection.innerHTML = `
+    <p>Change fields and save to edit the transaction (<a onclick="hideTransactionEdit()">hide form</a>)</p>
+     
+    <div class="form-group">
+        <label>Action</label>
+        <select class="form-control" id="action">
+            <option value="Deposit">Deposit</option>
+            <option value="Withdrawal">Withdrawal</option>
+        </select>
+    </div>
+        
+    <div class="form-group">
+        <label>Amount</label>
+        <input class="form-control" id="amount" autocomplete="off"/>
+    </div>
+    
+    <div class="form-group">
+        <label>Memo</label>
+        <input class="form-control" id="memo" autocomplete="off"/>
+    </div>
+    
+    <div class="form-group">
+        <label>Not Clear?</label>
+        <input type="checkbox" id="not-clear"/>
+    </div>
+    
+    <div class="form-group">
+        <button class="btn btn-default" onclick="getEditTransactionData(${transactionID})">Save</button>
+    </div>`
+
+    const currentAction = document.getElementById('action');
+    const currentAmount = document.getElementById('amount');
+    const currentMemo = document.getElementById('memo');
+    const currentNotClear = document.getElementById('not-clear');
+
+    currentAction.value = transaction[1]
+    if (Number(transaction[2]) < 0) {
+        currentAmount.value = transaction[2] * -1
+    } else {
+        currentAmount.value = transaction[2]
+    }
+    currentMemo.value = transaction[3]
+    if (transaction[4] = 'false') {
+        !currentNotClear.checked
+    } else if (transaction[4] = 'true') {
+        currentNotClear.checked
+    }
+
+}
+
+function hideTransactionEdit() {
+    const editTransaction = document.getElementById('edit-transaction');
+    removeAllChildren(editTransaction);
+}
+
 
 // Errors // 
 
