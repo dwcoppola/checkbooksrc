@@ -584,6 +584,27 @@ function loadBigString(str) {
     location.reload();
 }
 
+function getAllTransactions() {
+    const numberOfAccounts = getAllAccounts().length;
+    let output = '';
+    for (let i=0; i<numberOfAccounts; i++) {
+        output += localStorage[`account-${i}-transactions`];
+    }
+    return output.split(';').slice(0, this.length - 1);
+}
+
+function getAllTransactionsByMonth(month) {
+    
+}
+
+function getAllTransactionsByDay(day) {
+
+}
+
+function getTransactionsInDateRange(date1, date2) {
+
+}
+
 checkStorage();
 populateAccountMenu();
 checkUserState();
