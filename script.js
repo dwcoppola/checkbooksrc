@@ -1,17 +1,16 @@
-if (localStorage['account-id'] === undefined) {
-    localStorage['account-id'] = 0;
-}
-
-if (localStorage['transaction-id'] === undefined) {
-    localStorage['transaction-id'] = 0;
-}
-
-if (localStorage['accounts'] === undefined) {
-    localStorage['accounts'] = '';
-}
-
-if (localStorage['user-state'] === undefined) {
-    localStorage['user-state'] = '';
+function checkStorage() {
+    if (localStorage['account-id'] === undefined) {
+        localStorage['account-id'] = 0;
+    }
+    if (localStorage['transaction-id'] === undefined) {
+        localStorage['transaction-id'] = 0;
+    }
+    if (localStorage['accounts'] === undefined) {
+        localStorage['accounts'] = '';
+    }
+    if (localStorage['user-state'] === undefined) {
+        localStorage['user-state'] = '';
+    }
 }
 
 function clearStorage() {
@@ -562,6 +561,30 @@ function getEditTransactionDataWithEnter(event, transactionID) {
     }    
 }
 
+function saveBigString() {
+    let output = '';
+    for (let i = 0; i < localStorage.length; i++) {
+        output += localStorage.key(i) + "--" + localStorage[localStorage.key(i)] + "--"
+    }
+    const bigStringArea = document.getElementById('big-string');
+    bigStringArea.innerHTML = `
+    <p>Copy this big string somewhere you won't be able to lose it. Emailing yourself might work well:</p>
+    <p>${output}</p>`;
+}
+
+function loadBigString(str) {
+    const parsedStr = str.split('--').slice(0, this.length - 1);
+    for (let i in parsedStr) {
+        if (Number(i) % 2 !== 0) {
+            continue;
+        } else{
+            localStorage[parsedStr[i]] = parsedStr[Number(i) + 1];
+        }
+    }
+    location.reload();
+}
+
+checkStorage();
 populateAccountMenu();
 checkUserState();
 populateTransactionTable();
