@@ -315,7 +315,7 @@ function getEditTransactionData(transactionID) {
             alert(`Are you a hacker?`);
         }, 100);
     } else {
-        updateTransaction(transactionID, action.value, Number(amount.value).toFixed(2), memo.value, notClear.checked);
+        updateTransaction(transactionID, action.value, Number(amount.value).toFixed(2), memo.value, notClear.checked.toString());
         location.reload();        
     }
 
@@ -324,9 +324,9 @@ function getEditTransactionData(transactionID) {
 function toggleClear(transactionID) {
     const notClear = getTransactionByID(transactionID)[1].split(',')[4];
     if (notClear === "false") {
-        updateTransaction(transactionID, "", "", "", "true");
+        updateTransaction(transactionID, null, null, null, "true");
     } else {
-        updateTransaction(transactionID, "", "", "", "false");
+        updateTransaction(transactionID, null, null, null, "false");
     }
 }
 
@@ -361,18 +361,15 @@ function deleteAccount(accountID) {
 function showAddAccountSection() {
     const addAcctSect = document.getElementById('add-account');
     addAcctSect.innerHTML = `
-        <p>Fill out the form to add an account (<a onclick="hideAddAccountSection()">hide form</a>)</p>
-       
+        <p>Fill out the form to add an account (<a onclick="hideAddAccountSection()">hide form</a>)</p>      
         <div class="form-group">
             <label>Account Name</label>
             <input onkeypress="getAccountDataWithEnter(event)" class="form-control" id="account-name" autocomplete="off"/>
         </div>
-
         <div class="form-group">
             <label>Start Balance</label>
             <input onkeypress="getAccountDataWithEnter(event)" class="form-control" id="start-balance" autocomplete="off"/>
         </div>
-
         <div class="form-group">       
             <button onclick="getAccountData()" class="btn btn-default">Save</button>
         </div>`;
@@ -390,35 +387,30 @@ function hideAddAccountSection() {
 function showAddTransactionSection() {
     const addTransSect = document.getElementById('add-transaction');
     addTransSect.innerHTML = `
-    <p>Fill out the form to add a transaction (<a onclick="hideAddTransactionSection()">hide form</a>)</p>
-     
-    <div class="form-group">
-        <label>Action</label>
-        <select class="form-control" id="action">
-            <option selected disabled value="">Choose:</option>
-            <option value="Deposit">Deposit</option>
-            <option value="Withdrawal">Withdrawal</option>
-        </select>
-    </div>
-        
-    <div class="form-group">
-        <label>Amount</label>
-        <input onkeypress="getTransactionDataWithEnter(event)" class="form-control" id="amount" autocomplete="off"/>
-    </div>
-    
-    <div class="form-group">
-        <label>Memo</label>
-        <input onkeypress="getTransactionDataWithEnter(event)" class="form-control" id="memo" autocomplete="off"/>
-    </div>
-    
-    <div class="form-group">
-        <label>Not Clear?</label>
-        <input type="checkbox" id="not-clear"/>
-    </div>
-    
-    <div class="form-group">
-        <button class="btn btn-default" onclick="getTransactionData()">Save</button>
-    </div>`
+        <p>Fill out the form to add a transaction (<a onclick="hideAddTransactionSection()">hide form</a>)</p>  
+        <div class="form-group">
+            <label>Action</label>
+            <select class="form-control" id="action">
+                <option selected disabled value="">Choose:</option>
+                <option value="Deposit">Deposit</option>
+                <option value="Withdrawal">Withdrawal</option>
+            </select>
+        </div>     
+        <div class="form-group">
+            <label>Amount</label>
+            <input onkeypress="getTransactionDataWithEnter(event)" class="form-control" id="amount" autocomplete="off"/>
+        </div>
+        <div class="form-group">
+            <label>Memo</label>
+            <input onkeypress="getTransactionDataWithEnter(event)" class="form-control" id="memo" autocomplete="off"/>
+        </div>
+        <div class="form-group">
+            <label>Not Clear?</label>
+            <input type="checkbox" id="not-clear"/>
+        </div>
+        <div class="form-group">
+            <button class="btn btn-default" onclick="getTransactionData()">Save</button>
+        </div>`
     hideAddAccountSection();
 }
 
@@ -480,56 +472,52 @@ function populateBalances() {
 function showTransactionEdit(transactionID) {
     const domTransactions = document.getElementById('transaction-container');
     removeAllChildren(domTransactions);
-
     const editSection = document.getElementById('edit-transaction');
     const transaction = getTransactionByID(transactionID)[1].split(',');
-
     editSection.innerHTML = `
-    <p>Change fields and save to edit the transaction (<a onclick="hideTransactionEdit()">hide form</a>)</p>
-     
-    <div class="form-group">
-        <label>Action</label>
-        <select class="form-control" id="action">
-            <option value="Deposit">Deposit</option>
-            <option value="Withdrawal">Withdrawal</option>
-        </select>
-    </div>
-        
-    <div class="form-group">
-        <label>Amount</label>
-        <input class="form-control" id="amount" autocomplete="off"/>
-    </div>
-    
-    <div class="form-group">
-        <label>Memo</label>
-        <input class="form-control" id="memo" autocomplete="off"/>
-    </div>
-    
-    <div class="form-group">
-        <label>Not Clear?</label>
-        <input type="checkbox" id="not-clear"/>
-    </div>
-    
-    <div class="form-group">
-        <button class="btn btn-default" onclick="getEditTransactionData(${transactionID})">Save</button>
-    </div>`
+        <p>Change fields and save to edit the transaction (<a onclick="hideTransactionEdit()">hide form</a>)</p>
+        <div class="form-group">
+            <label>Action</label>
+            <select class="form-control" id="action">
+                <option value="Deposit">Deposit</option>
+                <option value="Withdrawal">Withdrawal</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Amount</label>
+            <input class="form-control" id="amount" autocomplete="off"/>
+        </div>
+        <div class="form-group">
+            <label>Memo</label>
+            <input class="form-control" id="memo" autocomplete="off"/>
+        </div>
+        <div class="form-group">
+            <label>Not Clear?</label>
+            <input type="checkbox" id="not-clear"/>
+        </div>
+        <div class="form-group">
+            <button class="btn btn-default" onclick="getEditTransactionData(${transactionID})">Save</button>
+        </div>`
 
     const currentAction = document.getElementById('action');
     const currentAmount = document.getElementById('amount');
     const currentMemo = document.getElementById('memo');
     const currentNotClear = document.getElementById('not-clear');
-
+    
     currentAction.value = transaction[1]
+    
     if (Number(transaction[2]) < 0) {
         currentAmount.value = transaction[2] * -1
     } else {
         currentAmount.value = transaction[2]
     }
+    
     currentMemo.value = transaction[3]
-    if (transaction[4] = 'false') {
-        !currentNotClear.checked
-    } else if (transaction[4] = 'true') {
-        currentNotClear.checked
+    
+    if (transaction[4] === 'false') {
+        currentNotClear.checked = false;
+    } else if (transaction[4] === 'true') {
+        currentNotClear.checked = true;
     }
 
 }
