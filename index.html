@@ -13,11 +13,12 @@
         <div id="index-main">
             <h2>Accounts</h2>
             <div id="add-account" class="form-group">
-                <button onclick="showAddAccountSection()" class="btn btn-default">Add Account</button>
+                <button onclick="renderAddAccountForm()" class="btn btn-default">Add Account</button>
             </div>
             <div id="balances">
             </div>            
             <div class="form-group">
+                <label class="glyphicon glyphicon-pencil" style="float: right"></label>
                 <label>Account</label>
                 <select onchange="populateTransactionTable()" class="form-control" id="account" autofocus>
                     <option selected disabled value="">Choose:</option>
@@ -27,15 +28,11 @@
             <div id="add-transaction" class="form-group">
                 <button onclick="showAddTransactionSection()" class="btn btn-default">Add Transaction</button>
             </div>
-            <div id="edit-transaction" class="form-group">
-                
-            </div>
+            <div id="edit-transaction" class="form-group"></div>
             <p><a class="red">Red text</a> = not clear</p>
             <div id="transaction-container">
             </div>
-            <div id="big-string"></div> 
         </div>
-        
         <footer>Dev: <a onclick="clearStorage()">Reset Storage</a></footer>
     </body>
 </html>

@@ -1,41 +1,11 @@
-function checkStorage() {
-    if (localStorage['account-id'] === undefined) {
-        localStorage['account-id'] = 0;
-    }
-    if (localStorage['transaction-id'] === undefined) {
-        localStorage['transaction-id'] = 0;
-    }
-    if (localStorage['accounts'] === undefined) {
-        localStorage['accounts'] = '';
-    }
-    if (localStorage['user-state'] === undefined) {
-        localStorage['user-state'] = '';
-    }
-}
+/* 
+I chose not to use classes in this exercise, but I do use objects
+which I stringify and re-parse as needed
+*/
 
-function clearStorage() {
-    localStorage.clear();
-    location.reload();
-}
-
-function incrementTransactionID() {
-    localStorage['transaction-id'] = Number(localStorage['transaction-id']) + 1;
-}
-
-function getTransactionID() {
-    return localStorage['transaction-id'];
-}
-
-function getAccountID() {
-    return localStorage['account-id'];
-}
-
-function incrementAcountID() {
-    localStorage['account-id'] = Number(localStorage['account-id']) + 1;
-}
-
+// This basically tells the program what account the user is currently looking at
 function checkUserState() {
-    const accountID = localStorage['user-state'];
+    const accountID = localStorage['userState'];
     const menu = document.getElementById('account');
     if (menu) {
         const options = menu.options;
@@ -47,69 +17,233 @@ function checkUserState() {
     }
 }
 
-// ------------------------
+// This adds an account object to the local storage
+function addAccount(accountName, startBalance) {
 
-function addTransaction(account, action, amount, memo, notClear) {
-    const time = new Date();
+    const account = {
+        'id': getCurrentID('accountId'),
+        'name': accountName,
+        'startBalance': startBalance,
+        'bankBalance': startBalance,
+        'availableBalance': startBalance
+    }
+
+    localStorage[`account-${account.id}`] = JSON.stringify(account);
+    localStorage['userState'] = account.id;
+    
+    incrementID('accountId');
+    
+    alert(`You have successfully added "${accountName}"`);
+    location.reload();
+
+}
+
+function getAccountByID(id) {
+    if (localStorage[`account-${id}`]) {
+        return JSON.parse(localStorage[`account-${id}`]);
+    } else {
+        console.log("Not found");
+    }
+}
+
+function getAllAccounts() {
+    let accounts = [];
+    for (let i=0; i<Number(localStorage.accountId); i++) {
+        if (localStorage[`account-${i}`]) {
+            accounts.push(JSON.parse(localStorage[`account-${i}`]));
+        }
+    }
+    return accounts
+}
+
+function changeAccountName(id, newName) {
+    let account = getAccountByID(id);
+    account.name = newName;
+    localStorage[`account-${id}`] = JSON.stringify(account);
+}
+
+function deleteAccount(id) {
+    if (localStorage[`account-${id}`]) {
+        const answer = confirm('Are you sure? This is not irreversible?')
+        if (answer) {
+            localStorage.removeItem(`account-${id}`)
+        } else {
+            // Do nothing
+        }
+        location.reload();
+        // Will add a cascade feature later when it's time (to purge irrelevant transactions)
+    } else {
+        console.log('What account is that?')
+    }
+} 
+
+// Add a transaction object to local storage
+function addTransaction(accountID, action, amount, memo, notClear) {
+
     if (action == "Withdrawal") {
         amount = Number(amount) * -1;
     }
-    const transaction = `${getTransactionID()},${action},${amount},${memo},${notClear},${time.toString().slice(4,15)};`;
-    localStorage[`account-${account}-transactions`] += transaction;
-    incrementTransactionID();
-}
 
-function getTransactionData() {
-
-    const account = document.getElementById('account');
-    const action = document.getElementById('action');
-    const amount = document.getElementById('amount');
-    const memo = document.getElementById('memo');
-    const notClear = document.getElementById('not-clear');
-
-    account.style.backgroundColor = '#fff';
-    action.style.backgroundColor = '#fff';
-    amount.style.backgroundColor = '#fff';
-    memo.style.backgroundColor = '#fff';
-    notClear.style.backgroundColor = '#fff';
-
-    if (getAccountByID(account.value) === "Not found") {
-        account.style.backgroundColor = '#ff0'
-        setTimeout(() => {
-            alert(`You must choose an account`);
-        }, 100);
-    } else if (action.value !== "Deposit" && action.value !== "Withdrawal") {
-        action.style.backgroundColor = '#FF0'
-        setTimeout(() => {
-            alert(`You can only Deposit or Withdraw`);
-        }, 100);
-    } else if (Boolean(Number(amount.value)) === false && amount.value.toString() !== "0" || amount.value.trim() === '' || Number(amount.value) < 0) {
-        amount.style.backgroundColor = '#FF0'
-        setTimeout(() => {
-            alert(`Please enter a positve number`);
-        }, 100);
-    } else if (notClear.checked !== true && notClear.checked !== false) {
-        setTimeout(() => {
-            alert(`Are you a hacker?`);
-        }, 100);
-    } else {
-        addTransaction(account.value, action.value, Number(amount.value).toFixed(2), memo.value, notClear.checked);
-        location.reload();        
+    // The object
+    let transaction = {
+        'id': getCurrentID('transactionId'),
+        'account': getAccountByID(accountID),
+        'action': action,
+        'amount': amount,
+        'memo': memo,
+        'notClear': notClear,
+        'time': (new Date()).toString().slice(0,15)
     }
 
+    // Turns the object literal into a string and saves it in local storage
+    localStorage[`transaction-${transaction.id}`] = JSON.stringify(transaction);
+    incrementID('transactionId');
+
+    updateBalances(accountID);
+
 }
 
-function addAccount(accountName, startBalance) {
+function getTransactionByID(id) {
+    if (localStorage[`transaction-${id}`]) {
+        return JSON.parse(localStorage[`transaction-${id}`]);
+    } else {
+        return null;
+    }
+}
 
-    localStorage['accounts'] += `${getAccountID()},${accountName},${startBalance};`;
-    localStorage[`account-${getAccountID()}-transactions`] = '';
-    localStorage['user-state'] = getAccountID();
-    incrementAcountID();
-    alert(`You have successfully added ${accountName}`);
+function getAllTransactions() {
+    let transactions = [];
+    for (let i=0; i<Number(localStorage.transactionId); i++) {
+        if (localStorage[`transaction-${i}`]) {
+            transactions.push(JSON.parse(localStorage[`transaction-${i}`]));
+        }
+    }
+    return transactions;
+}
+
+function getAccountTransactions(id) {
+    let output = [];
+    const transactions = getAllTransactions();
+    for (transaction of transactions) {
+        if (transaction.account.id.toString() === id.toString())  {
+            output.push(transaction);
+        }
+    }
+    return output;
+}
+
+function updateTransaction(id, action, amount, memo, notClear) {
+    let transaction = getTransactionByID(id);
+    if (transaction) {
+        if (action) {
+            transaction.action = action
+        }
+        if (amount) {
+            transaction.amount = amount
+        }
+        if (memo || memo === '') {
+            transaction.memo = memo
+        }
+        if (notClear === false || notClear === true) {
+            transaction.notClear = notClear
+        }
+    }
+
+    localStorage[`transaction-${id}`] = JSON.stringify(transaction);
+
+    updateBalances(transaction.account.id);
+
+}
+
+function deleteTransaction(id) {
+    const transaction = getTransactionByID(id);
+    if (localStorage[`transaction-${id}`]) {
+        const answer = confirm('Are you sure? This is not irreversible?')
+        if (answer) {
+            localStorage.removeItem(`transaction-${id}`);
+            updateBalances(transaction.account.id)
+            location.reload();
+        } else {
+            // Do nothing
+        }
+        // Will add a cascade feature later when it's time (to purge irrelevant transactions)
+    } else {
+        console.log('What account is that?')
+    }    
+}
+
+function updateBalances(accountId) {
+    // might be able to use th object instead of the id; just a thought
+    const transactions = getAccountTransactions(accountId);
+    let account = getAccountByID(accountId);
+
+    if (getAllTransactions().length !== 0) {
+
+        account.bankBalance = account.startBalance;
+        account.availableBalance = account.startBalance;
+        
+        for (let transaction of transactions) {
+            if (transaction.notClear === false) {
+                account.bankBalance = (Number(account.bankBalance) + Number(transaction.amount)).toFixed(2);
+                account.availableBalance = (Number(account.availableBalance) + Number(transaction.amount)).toFixed(2);
+            } else if (transaction.notClear === true && Number(transaction.amount < 0)) {
+                account.availableBalance = (Number(account.availableBalance) + Number(transaction.amount)).toFixed(2);
+            }
+        }
+
+    } else if (getAllTransactions().length === 0) {
+        account.bankBalance = account.startBalance;
+        account.availableBalance = account.startBalance;
+    }
+
+    localStorage[`account-${accountId}`] = JSON.stringify(account);
+
+}
+
+/* Checks local storage and sets up some keys for use in the program if 
+they don't already exist Also prompts user to add an account on their 
+first time using the program */
+function checkStorage() {
+    if (localStorage['accountId'] === undefined) {
+        localStorage['accountId'] = 0;
+    }
+    if (localStorage['transactionId'] === undefined) {
+        localStorage['transactionId'] = 0;
+    }
+    if (localStorage['userState'] === undefined) {
+        localStorage['userState'] = '';
+    }
+    if (localStorage['accountId'] === "0") {
+        const newAccountName = prompt(`To continue, please tell us what you would like your first account to be called:`);
+        const accountStartBalance = prompt(`And what is the starting balance?`);
+        if (newAccountName === null || accountStartBalance === null) {
+            alert('No problem. You can always do this later. Enjoy the app!');
+        } else {
+            if (!Boolean(Number(accountStartBalance))) {
+                alert('Try again');
+                location.reload();
+            } else {
+                addAccount(newAccountName, accountStartBalance);
+            }
+        }
+    }
+}
+
+// For me
+function clearStorage() {
+    localStorage.clear();
     location.reload();
+}
 
-}   
+function incrementID(key) {
+    localStorage[key] = Number(localStorage[key]) + 1;
+}
 
+function getCurrentID(key) {
+    return localStorage[key];
+}
+
+// This gets the data from the add account form
 function getAccountData() {
     
     const accountName = document.getElementById('account-name');
@@ -132,153 +266,57 @@ function getAccountData() {
 
 } 
 
-// ------------------------
+// This gets the data from the add transaction form
+function getTransactionData() {
 
-function getAllAccountTransactions() {
-    let output = [];
-    const accountID = document.getElementById('account'); 
-    if (accountID) {
-        const accounts = localStorage[`account-${accountID.value}-transactions`];
-        if (accounts !== undefined) {
-            for (let account of accounts.split(';').slice(0, this.length - 1)) {
-                output.push(account);
-            }
-            localStorage['user-state'] = accountID.value;
-            return output;
-        }
-    }
-}
+    const account = document.getElementById('account');
+    const action = document.getElementById('action');
+    const amount = document.getElementById('amount');
+    const memo = document.getElementById('memo');
+    const notClear = document.getElementById('not-clear');
 
-function getTransactionByID(transactionID) {
-    const numberOfAccounts = getAllAccounts().length;
-    for (let i=0; i<numberOfAccounts; i++) {
-        let accountTransactions = localStorage[`account-${i}-transactions`].split(';').slice(0, this.length - 1);
-        for (let transaction of accountTransactions) {
-            if (transaction.split(',')[0] === transactionID.toString()) {
-                let output = [i, transaction]
-                return output;
-            } else {
-                continue;
-            }
-        }
-    }
-    return "Not Found";
-}
+    account.style.backgroundColor = '#fff';
+    action.style.backgroundColor = '#fff';
+    amount.style.backgroundColor = '#fff';
+    memo.style.backgroundColor = '#fff';
+    notClear.style.backgroundColor = '#fff';
 
-function getAllAccounts() {
-    let output = [];
-    const accounts = localStorage['accounts'].split(';').slice(0, this.length - 1);
-    for (account of accounts) {
-        output.push(account.split(','));
-    };
-    return output;
-}
-
-function getAccountByID(accountID) {
-    const accounts = getAllAccounts();
-    for (let account of accounts) {
-        if (account[0] === accountID.toString()) {
-            return account;
-        }
-    }
-    return "Not found";
-}
-
-function getStartBalanceByID(accountID) {
-    for (let account of getAllAccounts()) {
-        if (account[0] === accountID.toString()) {
-            return account[2];
-        }
-    }
-}
-
-function getAccountTransactionValues() {
-    const account = document.getElementById('account').value;
-    const start = getStartBalanceByID(account);
-    output = [];
-    if (account && start) {
-        const transactions = localStorage[`account-${account}-transactions`].split(';').slice(0, this.length - 1);
-        for (transaction of transactions) {
-            let newArray = [transaction.split(',')[2], transaction.split(',')[4]]
-            output.push(newArray);
-        }
-    }
-    return output;
-}
-
-function getBankBalance() {
-    const values = getAccountTransactionValues();
-    const account = document.getElementById('account').value;
-    const start = getStartBalanceByID(account);
-    let bankBalance = Number(start);
-    for (let value of values) {
-        if (value[1] === 'false') {
-            bankBalance += Number(value[0]);
-        }
-    }
-    return bankBalance.toFixed(2);    
-}
-
-function getAvailableBalance() {
-    const values = getAccountTransactionValues();
-    const account = document.getElementById('account').value;
-    const start = getStartBalanceByID(account);
-    let availableBalance = Number(start);
-    for (let value of values) {
-        if (value[1] === 'false') {
-            availableBalance += Number(value[0]);
-        } else if (value[1] === 'true' && Number(value[0] < 0)) {
-            availableBalance += Number(value[0]);
-        }
-    }
-    return availableBalance.toFixed(2);
-}
-
-// ------------------------
-
-function updateAccount(accountID, name, startBalance) {
-    const account = getAccountByID(accountID).join(',') + ';';
-    let newAccount = getAccountByID(accountID);
-    if (name) {
-        newAccount[1] = name;
-    }
-    if (startBalance || startBalance === "0" || startBalance === 0) {
-        newAccount[2] = startBalance;
-    }
-    newAccount = newAccount.join(',') + ';';
-    localStorage.setItem(
-        'accounts', 
-        localStorage['accounts'].replace(account, newAccount)
-    );
-    location.reload();
-}
-
-function updateTransaction(transactionID, action, amount, memo, notClear) {
-    const transaction = getTransactionByID(transactionID)[1] + ';';
-    const account = getTransactionByID(transactionID)[0];
-    let newTransaction = getTransactionByID(transactionID)[1].split(',');
-    if (action) {
-        newTransaction[1] = action;
-    }
-    if (amount) {
-        newTransaction[2] = amount;
-    }
-    if (action === "Withdrawal" && Number(amount) > 0) {
-        newTransaction[2] = amount * -1;
-    }
-    if (memo || memo === "") {
-        newTransaction[3] = memo;
-    }
-    if (notClear) {
-        newTransaction[4] = notClear;
+    /* 
+        These are tests for when a user is the one sending data
+    */ 
+        
+    // Checks if account exists
+    if (getAccountByID(account.value) === "Not found") {
+        account.style.backgroundColor = '#ff0'
+        setTimeout(() => {
+            alert(`You must choose an account`);
+        }, 100);
+    // Checks for a valid action of which there are 2
+    } else if (action.value !== "Deposit" && action.value !== "Withdrawal") {
+        action.style.backgroundColor = '#FF0'
+        setTimeout(() => {
+            alert(`You can only Deposit or Withdraw`);
+        }, 100);
+    // Check that the user puts in a number with 0 or 1 decimal point as an amount
+    } else if ( Boolean(Number(amount.value)) === false && 
+                amount.value.toString() !== "0" || 
+                amount.value.trim() === '' || 
+                Number(amount.value) < 0) {
+        amount.style.backgroundColor = '#FF0'
+        setTimeout(() => {
+            alert(`Please enter a positve number`);
+        }, 100);
+    // CHeck if a non boolean value is submitted and then cracks a joke if so
+    } else if (notClear.checked !== true && notClear.checked !== false) {
+        setTimeout(() => {
+            alert(`Are you a hacker?`);
+        }, 100);
+    } else {
+    // Let's the data through into the function that creates the transaction object
+        addTransaction(account.value, action.value, Number(amount.value).toFixed(2), memo.value, notClear.checked);
+        location.reload();        
     }
 
-    newTransaction = newTransaction.join(',') + ';';
-    localStorage.setItem(
-        `account-${account}-transactions`, 
-        localStorage.getItem(`account-${account}-transactions`).replace(transaction, newTransaction)
-    );
-    location.reload();
 }
 
 function getEditTransactionData(transactionID) {
@@ -305,7 +343,10 @@ function getEditTransactionData(transactionID) {
         setTimeout(() => {
             alert(`You can only Deposit or Withdraw`);
         }, 100);
-    } else if (Boolean(Number(amount.value)) === false && amount.value.toString() !== "0" || amount.value.trim() === '' || Number(amount.value) < 0) {
+    } else if ( Boolean(Number(amount.value)) === false && 
+                amount.value.toString() !== "0" || 
+                amount.value.trim() === '' || 
+                Number(amount.value) < 0) {
         amount.style.backgroundColor = '#FF0'
         setTimeout(() => {
             alert(`Please enter a positve number`);
@@ -315,53 +356,16 @@ function getEditTransactionData(transactionID) {
             alert(`Are you a hacker?`);
         }, 100);
     } else {
-        updateTransaction(transactionID, action.value, Number(amount.value).toFixed(2), memo.value, notClear.checked.toString());
+        updateTransaction(transactionID, action.value, Number(amount.value).toFixed(2), memo.value, notClear.checked);
         location.reload();        
     }
 
 }
 
-function toggleClear(transactionID) {
-    const notClear = getTransactionByID(transactionID)[1].split(',')[4];
-    if (notClear === "false") {
-        updateTransaction(transactionID, null, null, null, "true");
-    } else {
-        updateTransaction(transactionID, null, null, null, "false");
-    }
-}
-
-// ------------------------
-
-function deleteTransaction(transactionID) {
-    let answer = confirm(`Are you sure? This action cannot be undone`);
-    if (answer) {
-        const numberOfAccounts = getAllAccounts().length;
-        for (let i=0; i<numberOfAccounts; i++) {
-            let accountTransactions = localStorage[`account-${i}-transactions`].split(';').slice(0, this.length - 1);
-            for (let transaction of accountTransactions) {
-                if (transaction.split(',')[0].toString() === transactionID.toString()) {
-                    localStorage[`account-${i}-transactions`] = localStorage[`account-${i}-transactions`].replace(transaction + ';', '');
-                    location.reload();
-                } else {
-                }
-            }
-        }
-    }
-}
-
-function deleteAccount(accountID) {
-    const account = getAccountByID(accountID).join(',') + ';';
-    localStorage['accounts'] = localStorage['accounts'].replace(account, '')
-    localStorage.removeItem(`account-${accountID}-transactions`);
-    location.reload();
-} 
-
-// ------------------------
-
-function showAddAccountSection() {
+function renderAddAccountForm() {
     const addAcctSect = document.getElementById('add-account');
     addAcctSect.innerHTML = `
-        <p>Fill out the form to add an account (<a onclick="hideAddAccountSection()">hide form</a>)</p>      
+        <p>Fill out the form to add an account (<a onclick="hideAddAccountForm()">hide form</a>)</p>      
         <div class="form-group">
             <label>Account Name</label>
             <input onkeypress="getAccountDataWithEnter(event)" class="form-control" id="account-name" autocomplete="off"/>
@@ -375,19 +379,19 @@ function showAddAccountSection() {
         </div>`;
     const accountName = document.getElementById('account-name');
     accountName.focus();
-    hideAddTransactionSection();
+    hideAddTransactionForm();
 }
 
-function hideAddAccountSection() {
+function hideAddAccountForm() {
     const addAccount = document.getElementById('add-account');
     removeAllChildren(addAccount);
-    addAccount.innerHTML = `<button onclick="showAddAccountSection()" class="btn btn-default">Add Account</button>`;
+    addAccount.innerHTML = `<button onclick="renderAddAccountForm()" class="btn btn-default">Add Account</button>`;
 }
 
 function showAddTransactionSection() {
     const addTransSect = document.getElementById('add-transaction');
     addTransSect.innerHTML = `
-        <p>Fill out the form to add a transaction (<a onclick="hideAddTransactionSection()">hide form</a>)</p>  
+        <p>Fill out the form to add a transaction (<a onclick="hideAddTransactionForm()">hide form</a>)</p>  
         <div class="form-group">
             <label>Action</label>
             <select class="form-control" id="action">
@@ -411,10 +415,10 @@ function showAddTransactionSection() {
         <div class="form-group">
             <button class="btn btn-default" onclick="getTransactionData()">Save</button>
         </div>`
-    hideAddAccountSection();
+    hideAddAccountForm();
 }
 
-function hideAddTransactionSection() {
+function hideAddTransactionForm() {
     const addTransaction = document.getElementById('add-transaction');
     removeAllChildren(addTransaction);
     addTransaction.innerHTML = `<button onclick="showAddTransactionSection()" class="btn btn-default">Add Transaction</button>`;
@@ -425,26 +429,28 @@ function populateAccountMenu() {
     const menu = document.getElementById('account');
     if (menu !== null) {
         for (let account of accounts) {
-            menu.innerHTML += `<option value="${account[0]}">${account[1]}</option>`;
+            menu.innerHTML += `<option value="${account.id}">${account.name}</option>`;
         }
     }
 }
 
 function populateTransactionTable() {
-    const transactions = getAllAccountTransactions();
+    const accountId = document.getElementById('account').value;
+    localStorage.userState = accountId;
+    const transactions = getAccountTransactions(accountId);
     if (transactions !== undefined) {
         const container = document.getElementById('transaction-container');
         if (container) {
             removeAllChildren(container);
             for (let transaction of transactions.reverse()) {
                 container.innerHTML += 
-                `<div class="${transaction.split(',')[4] === 'true' ? "red" : "black"} well" id="well-${transaction.split(',')[0]}">
-                    <p class="glyphicon glyphicon-pencil" style="float: right" class="no-margin"onclick="showTransactionEdit(${transaction.split(',')[0]})"></p>
-                    <p class="no-margin">${transaction.split(',')[5]}</p>
-                    <p class="no-margin">${transaction.split(',')[3].trim() === '' ? 'No Memo' : transaction.split(',')[3].trim()}</p>
-                    <p class="no-margin">$${transaction.split(',')[2]}</p>
-                    <p class="glyphicon glyphicon-remove" style="float: right" class="no-margin"onclick="deleteTransaction(${transaction.split(',')[0]})"></p>
-                    <p class="no-margin">Not clear? <input ${transaction.split(',')[4] === 'true' ? 'checked' : ''} type="checkbox" onchange="toggleClear(${transaction.split(',')[0]})"/></p>
+                `<div class="${transaction.notClear === true ? "red" : "black"} well" id="well-${transaction.id}">
+                    <p class="glyphicon glyphicon-pencil" style="float: right" class="no-margin"onclick="showTransactionEdit(${transaction.id})"></p>
+                    <p class="no-margin">${transaction.time}</p>
+                    <p class="no-margin">${transaction.memo === '' ? 'No Memo' : transaction.memo}</p>
+                    <p class="no-margin">$${transaction.amount}</p>
+                    <p class="glyphicon glyphicon-remove" style="float: right" class="no-margin"onclick="deleteTransaction(${transaction.id})"></p>
+                    <p class="no-margin">Not clear? <input ${transaction.notClear === true ? 'checked' : ''} type="checkbox" onchange="toggleClear(${transaction.id})"/></p>
                 </div>`
             }
         }
@@ -460,11 +466,11 @@ function removeAllChildren(parent) {
 
 function populateBalances() {
     const balanceSection = document.getElementById('balances');
-    const account = document.getElementById('account');
-    if (account.value) {
+    const account = getAccountByID(document.getElementById('account').value);
+    if (account) {
         balanceSection.innerHTML = `
         <div>
-            <p>Available: $${getAvailableBalance(account.value)} | Bank: $${getBankBalance(account.value)}</p>
+            <p>Available: $${account.availableBalance} | Bank: $${account.bankBalance}</p>
         </div>`;
     }
 }
@@ -472,8 +478,10 @@ function populateBalances() {
 function showTransactionEdit(transactionID) {
     const domTransactions = document.getElementById('transaction-container');
     removeAllChildren(domTransactions);
+
     const editSection = document.getElementById('edit-transaction');
-    const transaction = getTransactionByID(transactionID)[1].split(',');
+    const transaction = getTransactionByID(transactionID);
+    
     editSection.innerHTML = `
         <p>Change fields and save to edit the transaction (<a onclick="hideTransactionEdit()">hide form</a>)</p>
         <div class="form-group">
@@ -503,23 +511,33 @@ function showTransactionEdit(transactionID) {
     const currentAmount = document.getElementById('amount');
     const currentMemo = document.getElementById('memo');
     const currentNotClear = document.getElementById('not-clear');
+
+    currentAction.value = transaction.action
     
-    currentAction.value = transaction[1]
-    
-    if (Number(transaction[2]) < 0) {
-        currentAmount.value = transaction[2] * -1
+    if (Number(transaction.amount) < 0) {
+        currentAmount.value = transaction.amount * -1
     } else {
-        currentAmount.value = transaction[2]
+        currentAmount.value = transaction.amount
     }
     
-    currentMemo.value = transaction[3]
+    currentMemo.value = transaction.memo
     
-    if (transaction[4] === 'false') {
+    if (transaction.notClear === false) {
         currentNotClear.checked = false;
-    } else if (transaction[4] === 'true') {
+    } else if (transaction.notClear === true) {
         currentNotClear.checked = true;
     }
 
+}
+
+function toggleClear(transactionID) {
+    const transaction = getTransactionByID(transactionID);
+    if (transaction.notClear === false) {
+        updateTransaction(transactionID, null, null, null, true);
+    } else {
+        updateTransaction(transactionID, null, null, null, false);
+    }
+    location.reload();
 }
 
 function hideTransactionEdit() {
@@ -549,52 +567,8 @@ function getEditTransactionDataWithEnter(event, transactionID) {
     }    
 }
 
-function saveBigString() {
-    let output = '';
-    for (let i = 0; i < localStorage.length; i++) {
-        output += localStorage.key(i) + "--" + localStorage[localStorage.key(i)] + "--"
-    }
-    const bigStringArea = document.getElementById('big-string');
-    bigStringArea.innerHTML = `
-    <p>Copy this big string somewhere you won't be able to lose it. Emailing yourself might work well:</p>
-    <p>${output}</p>`;
-}
-
-function loadBigString(str) {
-    const parsedStr = str.split('--').slice(0, this.length - 1);
-    for (let i in parsedStr) {
-        if (Number(i) % 2 !== 0) {
-            continue;
-        } else{
-            localStorage[parsedStr[i]] = parsedStr[Number(i) + 1];
-        }
-    }
-    location.reload();
-}
-
-function getAllTransactions() {
-    const numberOfAccounts = getAllAccounts().length;
-    let output = '';
-    for (let i=0; i<numberOfAccounts; i++) {
-        output += localStorage[`account-${i}-transactions`];
-    }
-    return output.split(';').slice(0, this.length - 1);
-}
-
-function getAllTransactionsByMonth(month) {
-    
-}
-
-function getAllTransactionsByDay(day) {
-
-}
-
-function getTransactionsInDateRange(date1, date2) {
-
-}
-
 checkStorage();
 populateAccountMenu();
 checkUserState();
-populateTransactionTable();
 populateBalances();
+populateTransactionTable();
