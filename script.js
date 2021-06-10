@@ -1,5 +1,5 @@
 /* 
-I chose not to use classes in this exercise, but I do use objects
+I chose not to use classes in this exercise, but I did use objects
 which I stringify and re-parse as needed
 */
 
@@ -220,8 +220,7 @@ function checkStorage() {
             alert('No problem. You can always do this later. Enjoy the app!');
         } else {
             if (!Boolean(Number(accountStartBalance))) {
-                alert('Try again');
-                location.reload();
+                alert(`'The information you entered isn't going to work, but that's ok. You can always do this later. Enjoy the app!`);
             } else {
                 addAccount(newAccountName, accountStartBalance);
             }
