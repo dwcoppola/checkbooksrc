@@ -42,7 +42,7 @@ function getAccountByID(id) {
     if (localStorage[`account-${id}`]) {
         return JSON.parse(localStorage[`account-${id}`]);
     } else {
-        console.log("Not found");
+        return null;
     }
 }
 
@@ -286,7 +286,7 @@ function getTransactionData() {
     */ 
         
     // Checks if account exists
-    if (getAccountByID(account.value) === "Not found") {
+    if (getAccountByID(account.value) === null) {
         account.style.backgroundColor = '#ff0'
         setTimeout(() => {
             alert(`You must choose an account`);
@@ -314,7 +314,7 @@ function getTransactionData() {
     } else {
     // Let's the data through into the function that creates the transaction object
         addTransaction(account.value, action.value, Number(amount.value).toFixed(2), memo.value, notClear.checked);
-        location.reload();        
+        location.reload();
     }
 
 }
