@@ -402,7 +402,7 @@ function renderAddAccountForm() {
         </div>
         <div class="form-group">
             <label>Start Balance</label>
-            <input onkeypress="getAccountDataWithEnter(event)" class="form-control" id="start-balance" autocomplete="off"/>
+            <input type="number" step="0.01" min="0.01" onkeypress="getAccountDataWithEnter(event)" class="form-control" id="start-balance" autocomplete="off"/>
         </div>
         <div class="form-group">       
             <button onclick="getAccountData()" class="btn btn-default">Save</button>
@@ -432,7 +432,7 @@ function showAddTransactionSection() {
         </div>     
         <div class="form-group">
             <label>Amount</label>
-            <input onkeypress="getTransactionDataWithEnter(event)" class="form-control" id="amount" autocomplete="off"/>
+            <input type="number" step="0.01" min="0.01" onkeypress="getTransactionDataWithEnter(event)" class="form-control" id="amount" autocomplete="off"/>
         </div>
         <div class="form-group">
             <label>Memo</label>
