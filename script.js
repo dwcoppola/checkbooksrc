@@ -56,10 +56,36 @@ function getAllAccounts() {
     return accounts
 }
 
+function promptForNameChange() {
+    const accountId = document.getElementById('account').value;
+    if (accountId !== '') {
+        const newName = prompt('What would you like to rename this Account?');
+        if (newName !== null || newName !== '') {
+            changeAccountName(accountId, newName);
+            location.reload();
+        }
+    } else {
+        alert(`You're either a hacker or you don't have any accounts selected to edit`);
+    }
+}
+
 function changeAccountName(id, newName) {
     let account = getAccountByID(id);
     account.name = newName;
     localStorage[`account-${id}`] = JSON.stringify(account);
+}
+
+function promptForDelete() {
+    const accountId = document.getElementById('account').value;
+    deleteAccount(accountId);
+}
+
+function cascadeDeleteTransactions(accountId) {
+    const list = getAccountTransactions(accountId)
+    for (item of list) {
+        localStorage.removeItem(`transaction-${item.id}`);
+    }
+    location.reload()
 }
 
 function deleteAccount(id) {
@@ -70,10 +96,12 @@ function deleteAccount(id) {
         } else {
             // Do nothing
         }
-        location.reload();
         // Will add a cascade feature later when it's time (to purge irrelevant transactions)
+        cascadeDeleteTransactions(id);
+        location.reload();
+
     } else {
-        console.log('What account is that?')
+        alert(`You either don't have an account selected, or you hacked me.`)
     }
 } 
 
@@ -166,7 +194,6 @@ function deleteTransaction(id) {
         } else {
             // Do nothing
         }
-        // Will add a cascade feature later when it's time (to purge irrelevant transactions)
     } else {
         console.log('What account is that?')
     }    
@@ -255,6 +282,10 @@ function getAccountData() {
     } else if (startBalance.value.trim() === '') {
         setTimeout(() => {
             alert(`Your Start Balance can't be blank!`);
+        }, 100);
+    } else if (Boolean(Number(startBalance.value)) === false && Number(startBalance.value) !== 0) {
+        setTimeout(() => {
+            alert(`Start balance should be a number!`);
         }, 100);
     } else { 
         addAccount(accountName.value.trim(), startBalance.value);
