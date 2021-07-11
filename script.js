@@ -90,7 +90,7 @@ function cascadeDeleteTransactions(accountId) {
 
 function deleteAccount(id) {
     if (localStorage[`account-${id}`]) {
-        const answer = confirm('Are you sure? This is not irreversible?')
+        const answer = confirm('Are you sure? This is not reversible.')
         if (answer) {
             localStorage.removeItem(`account-${id}`)
         } else {
@@ -186,7 +186,7 @@ function updateTransaction(id, action, amount, memo, notClear) {
 function deleteTransaction(id) {
     const transaction = getTransactionByID(id);
     if (localStorage[`transaction-${id}`]) {
-        const answer = confirm('Are you sure? This is not irreversible?')
+        const answer = confirm('Are you sure? This is not reversible.')
         if (answer) {
             localStorage.removeItem(`transaction-${id}`);
             updateBalances(transaction.account.id)
